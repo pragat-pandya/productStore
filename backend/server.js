@@ -1,6 +1,7 @@
 import express from 'express';
 import { connectDb } from './config/db.js';
 import Product from './models/product.model.js';
+import mongoose from 'mongoose';
 
 
 const app = express();
@@ -32,7 +33,6 @@ app.post("/api/products", async (req, res) => {
     }
 });
 
-
 app.delete("/api/products/:id", async (req, res) => {
     const {id} = req.params;
     console.log("id:", id);
@@ -52,7 +52,6 @@ app.delete("/api/products/:id", async (req, res) => {
     }
 });
 
-
 app.get("/api/products", async (req, res) => {
     try {
         const products = await Product.find({});
@@ -66,6 +65,32 @@ app.get("/api/products", async (req, res) => {
             success: false,
             message: "Server Error"
         });
+    }
+});
+
+app.put("/api/products/:id", async (req, res) => {
+    const {id} = req.params;
+    const product = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(404).json({
+            success: false,
+            message: "Invalid Product ID"
+        });
+    }
+
+    try {
+        const updatedProduct = await Product.findByIdAndUpdate(id, product, {new:true});
+        res.status(200).json({
+            success: true,
+            data: updatedProduct
+        });
+    } catch (error) {
+        console.log("Error in updating the product", error.message);
+        res.status(500).json({
+            success: true,
+            message: "Server Error"
+        })
     }
 });
 
