@@ -1,10 +1,36 @@
 import express from 'express';
 import { connectDb } from './config/db.js';
-const app = express();
+import Product from './models/product.model.js';
 
-app.get("/", (req, res) => {
-    res.send("Server is ready!");
-})
+
+const app = express();
+app.use(express.json()); 
+
+
+app.post("/api/products", async (req, res) => {
+    const product = req.body;
+
+    if (!product.name || !product.price || !product.image) {
+        return res.status(400).json({
+            success: false,
+            message: "Please provide all required fields"
+        });
+    }
+    try {
+        // await newProduct.save();
+        const newProduct = await Product.create(product);
+        res.status(201).json({
+            success: true, 
+            data: newProduct
+        });
+    } catch (error) {
+        console.log("Error in create product", error.message);
+        res.status(500).json({
+            success: false,
+            message: "Server Error"
+        });
+    }
+});
 
 app.listen(5000, () => {
     connectDb();
